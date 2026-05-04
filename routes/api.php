@@ -8,8 +8,8 @@ use App\Http\Controllers\Admin\SystemController;
 
 Route::middleware('auth.internal')->group(function () {
 
-    // ── Admin routes first (more specific) ──
-    Route::prefix('admin')->group(function () {
+    // ── Admin routes (Linked to the 'admin_user' logic in AppServiceProvider) ──
+    Route::prefix('admin')->middleware('throttle:admin_user')->group(function () {
         Route::get('/departments', [DepartmentController::class, 'index']);
         Route::post('/departments', [DepartmentController::class, 'store']);
         Route::put('/departments/{id}', [DepartmentController::class, 'update']);
@@ -26,9 +26,11 @@ Route::middleware('auth.internal')->group(function () {
         Route::delete('/systems/{id}', [SystemController::class, 'destroy']);
     });
 
-    // ── Portal routes after (generic, has {basename} wildcard) ──
-    Route::get('/departments', [PortalController::class, 'departments']);
-    Route::get('/cards/{basename}', [PortalController::class, 'cards']);
-    Route::get('/systems/{cardId}', [PortalController::class, 'systems']);
+    // ── Portal routes (Linked to the 'portal_user' logic in AppServiceProvider) ──
+    Route::middleware('throttle:portal_user')->group(function () {
+        Route::get('/departments', [PortalController::class, 'departments']);
+        Route::get('/cards/{basename}', [PortalController::class, 'cards']);
+        Route::get('/systems/{cardId}', [PortalController::class, 'systems']);
+    });
 
 });

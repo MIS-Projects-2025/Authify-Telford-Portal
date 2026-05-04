@@ -7,9 +7,9 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/Components/ui/dialog";
+import { Badge } from "@/Components/ui/badge";
+import { Skeleton } from "@/Components/ui/skeleton";
 import { ExternalLink, ChevronRight } from "lucide-react";
 import { useCards, useSystems, useDepartments } from "@/hooks/usePortal";
 import { usePage } from "@inertiajs/react";
@@ -74,15 +74,15 @@ function getLucideIcon(name, className = "w-4 h-4") {
 }
 
 export default function SystemCards() {
-    const basename =
-        new URLSearchParams(window.location.search).get("dept") || "";
+    const { url } = usePage();
+    const basename = new URLSearchParams(url.split("?")[1]).get("dept") || "";
     const { departments } = useDepartments();
     const { cards, loading: cardsLoading } = useCards(basename);
     const [openCard, setOpenCard] = useState(null);
     const { systems, loading: systemsLoading } = useSystems(openCard?.id);
     const { emp_data } = usePage().props;
     const dept = departments.find((d) => d.basename === basename);
-    const colors = colorMap[dept?.color_key] ?? colorMap.neutral;
+    const colors = colorMap[dept?.color] ?? colorMap.neutral;
     console.log(usePage().props);
 
     return (

@@ -6,21 +6,26 @@ use App\Models\Department;
 use App\Models\Card;
 use App\Models\System;
 use Illuminate\Http\Request;
-use Inertia\Inertia; // Add this import
+use Illuminate\Support\Facades\Cache; // Add this
+use Inertia\Inertia;
 
 class PortalController extends Controller
 {
+    // Cache duration in seconds (3600 = 1 hour)
+    protected $cacheTime = 3600;
+
     /**
      * Main portal page - renders the SystemCards component
      */
     public function index(Request $request)
     {
-        // Get all departments for the sidebar
-        $departments = Department::where('is_active', 1)
-            ->orderBy('sort_order')
-            ->get();
+        // Cache the sidebar departments
+        $departments = Cache::remember('portal_sidebar_depts', $this->cacheTime, function () {
+            return Department::where('is_active', 1)
+                ->orderBy('sort_order')
+                ->get();
+        });
         
-        // Return the SystemCards component with departments data
         return Inertia::render('SystemCards', [
             'departments' => $departments,
         ]);
@@ -32,9 +37,11 @@ class PortalController extends Controller
     public function departments()
     {
         return response()->json(
-            Department::where('is_active', 1)
-                ->orderBy('sort_order')
-                ->get()
+            Cache::remember('api_all_departments', $this->cacheTime, function () {
+                return Department::where('is_active', 1)
+                    ->orderBy('sort_order')
+                    ->get();
+            })
         );
     }
 
@@ -43,13 +50,16 @@ class PortalController extends Controller
      */
     public function cards($basename)
     {
-        $dept = Department::where('basename', $basename)->firstOrFail();
-
+        // Use the basename in the key to keep caches separate per department
         return response()->json(
-            Card::where('department_id', $dept->id)
-                ->where('is_active', 1)
-                ->orderBy('sort_order')
-                ->get()
+            Cache::remember("api_dept_cards_{$basename}", $this->cacheTime, function () use ($basename) {
+                $dept = Department::where('basename', $basename)->firstOrFail();
+
+                return Card::where('department_id', $dept->id)
+                    ->where('is_active', 1)
+                    ->orderBy('sort_order')
+                    ->get();
+            })
         );
     }
 
@@ -59,9 +69,11 @@ class PortalController extends Controller
     public function systems($cardId)
     {
         return response()->json(
-            System::where('card_id', $cardId)
-                ->orderBy('sort_order')
-                ->get()
+            Cache::remember("api_card_systems_{$cardId}", $this->cacheTime, function () use ($cardId) {
+                return System::where('card_id', $cardId)
+                    ->orderBy('sort_order')
+                    ->get();
+            })
         );
     }
 }

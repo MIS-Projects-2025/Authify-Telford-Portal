@@ -1,5 +1,5 @@
 APP_NAME=Authify
-APP_URL=http://192.168.2.221:8080
+APP_URL=http://192.168.2.221:8200
 APP_KEY=base64:fgMt5sZvp+MwnhxB9V0V0xOjpx9UqsGbLV/gFY/sLeo=
 
 

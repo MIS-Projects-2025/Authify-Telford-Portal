@@ -5,9 +5,10 @@ import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/Components/ui/tooltip";
+import { Skeleton } from "@/Components/ui/skeleton";
 import { useDepartments } from "@/hooks/usePortal";
+import { memo } from "react";
 
 const colorMap = {
     green: "bg-green-500/10 text-green-400",
@@ -33,11 +34,25 @@ function getLucideIcon(name, className = "w-4 h-4") {
         <LucideIcons.Box className={className} />
     );
 }
-
+const NavIcon = memo(({ iconName, isActive, colorClass }) => {
+    return (
+        <span
+            className={cn(
+                "flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0 transition-colors",
+                isActive
+                    ? colorClass
+                    : "bg-zinc-800/80 text-zinc-500 group-hover:text-zinc-300",
+            )}
+        >
+            {getLucideIcon(iconName)}
+        </span>
+    );
+});
 export default function Navigation({ isSidebarOpen }) {
     const { departments, loading } = useDepartments();
+    const { url } = usePage();
     const currentBasename =
-        new URLSearchParams(window.location.search).get("dept") || "";
+        new URLSearchParams(url.split("?")[1]).get("dept") || "";
 
     const { emp_data } = usePage().props;
 
@@ -61,60 +76,62 @@ export default function Navigation({ isSidebarOpen }) {
                 <p className="text-[10px] font-medium text-zinc-600 uppercase tracking-widest px-3 py-2">
                     Departments
                 </p>
+                <div className="flex flex-col gap-1">
+                    {departments.map((dept) => {
+                        const isActive = currentBasename === dept.basename;
+                        const colorClass =
+                            colorMap[dept.color] ?? colorMap.neutral;
 
-                {departments.map((dept) => {
-                    const isActive = currentBasename === dept.basename;
-                    const colorClass = colorMap[dept.color] ?? colorMap.neutral;
-
-                    const content = (
-                        <Link
-                            key={dept.id}
-                            href={route("portal", {
-                                dept: dept.basename,
-                            })}
-                            className={cn(
-                                "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 group w-full",
-                                isActive
-                                    ? "bg-zinc-800 text-zinc-100"
-                                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100",
-                            )}
-                        >
-                            <span
+                        const content = (
+                            <Link
+                                key={dept.id}
+                                href={route("portal", {
+                                    dept: dept.basename,
+                                })}
+                                preserveState
                                 className={cn(
-                                    "flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0 transition-colors",
+                                    "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 group w-full",
                                     isActive
-                                        ? colorClass
-                                        : "bg-zinc-800/80 text-zinc-500 group-hover:text-zinc-300",
+                                        ? "bg-zinc-800 text-zinc-100"
+                                        : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100",
                                 )}
                             >
-                                {getLucideIcon(dept.icon)}
-                            </span>
+                                <NavIcon
+                                    iconName={dept.icon}
+                                    isActive={isActive}
+                                    colorClass={colorClass}
+                                />
 
-                            {isSidebarOpen && (
-                                <span className="text-sm font-medium truncate leading-none flex-1">
+                                {isSidebarOpen && (
+                                    <span className="text-sm font-medium truncate leading-none flex-1">
+                                        {dept.name}
+                                    </span>
+                                )}
+
+                                {isSidebarOpen && isActive && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                                )}
+                            </Link>
+                        );
+
+                        return isSidebarOpen ? (
+                            <div key={dept.id}>{content}</div>
+                        ) : (
+                            <Tooltip key={dept.id}>
+                                <TooltipTrigger asChild>
+                                    {content}
+                                </TooltipTrigger>
+                                <TooltipContent
+                                    side="right"
+                                    className="text-xs"
+                                >
                                     {dept.name}
-                                </span>
-                            )}
-
-                            {isSidebarOpen && isActive && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
-                            )}
-                        </Link>
-                    );
-
-                    return isSidebarOpen ? (
-                        <div key={dept.id}>{content}</div>
-                    ) : (
-                        <Tooltip key={dept.id}>
-                            <TooltipTrigger asChild>{content}</TooltipTrigger>
-                            <TooltipContent side="right" className="text-xs">
-                                {dept.name}
-                            </TooltipContent>
-                        </Tooltip>
-                    );
-                })}
+                                </TooltipContent>
+                            </Tooltip>
+                        );
+                    })}
+                </div>
             </div>
-
             {/* 🔹 STICKY ADMIN (always visible) */}
             {emp_data?.role === "admin" && (
                 <div className="sticky bottom-0 bg-zinc-950 pt-3 pb-2">
