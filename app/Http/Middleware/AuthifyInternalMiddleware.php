@@ -61,7 +61,7 @@ class AuthifyInternalMiddleware
             'emp_station'   => $currentUser->emp_station,
             'emp_position'  => $currentUser->emp_position ?? null,
             'generated_at'  => $currentUser->generated_at,
-            'role'          => $role, 
+            'role'          => $role,
         ]]);
 
         session()->save();

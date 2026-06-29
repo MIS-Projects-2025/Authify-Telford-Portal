@@ -25,12 +25,12 @@ class PortalController extends Controller
                 ->orderBy('sort_order')
                 ->get();
         });
-        
+
         return Inertia::render('SystemCards', [
             'departments' => $departments,
         ]);
     }
-    
+
     /**
      * API: Get all departments
      */
