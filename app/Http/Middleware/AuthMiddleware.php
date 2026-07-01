@@ -60,7 +60,7 @@ class AuthMiddleware
             return $this->redirectToLogin($request);
         }
 
-       
+
         // $role = strtolower($currentUser->emp_jobtitle) === 'programmer' ? 'admin' : 'user';
         // 🔹 Set session
         session(['emp_data' => [
@@ -100,6 +100,6 @@ class AuthMiddleware
     private function redirectToLogin(Request $request)
     {
         $redirectUrl = urlencode($request->fullUrl());
-        return redirect("http://192.168.2.221:8200/login?redirect={$redirectUrl}");
+        return redirect(config('services.authify.url') . "/login?redirect={$redirectUrl}");
     }
 }
